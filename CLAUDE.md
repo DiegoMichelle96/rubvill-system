@@ -10,12 +10,15 @@ Stack: Next.js 16.4 (App Router, Turbopack, Cache Components, Partial Prefetchin
 - `npm run lint` lint
 - `npm run build` production build
 
+The dev server may not hot-reload changes to `globals.css`; restart it after editing tokens.
+
 Every change must pass `npm run lint` and `npm run build`.
 
 ## Git
 
 - Never commit or push without the user's explicit approval for that specific change. Approval does not carry over to later changes.
 - Commit messages: short, simple, and descriptive of what was done.
+- Never commit or push to `main`. Before every commit, run `git branch --show-current`; if it is `main`, create a descriptive branch first (`feature/...`, `fix/...`). Push that branch; the user merges.
 
 ## Next.js version
 
@@ -40,7 +43,7 @@ The browser never calls the backend directly.
 - `src/lib/backend.js` is the only module that performs HTTP calls to the backend. It reads `API_URL`, attaches the backend `sessionId` from the session, sends `ngrok-skip-browser-warning`, and turns backend errors into a consistent shape.
 - Route handlers live in `src/app/api/<resource>/route.js`, mirroring backend paths (`client`, `invoice`, `user`, `cfdi-job`). They stay one-liners: wrap with `route()` from `src/lib/route.js`, read input with `readId`/`readQuery`/`readJson`/`readForm` and a schema, call a service function. `route()` returns `{ error, fields? }` with the right status for every failure.
 - Zod schemas live in `src/lib/schemas.js`. They are isomorphic, so forms reuse them. Validate every input before it reaches the backend; the backend does not validate and leaks database errors as 500s.
-- Backend quirks: lists return `{ data, meta }` for clients and invoices but a bare array for jobs and users; "not found" comes back as 500; `401` uses `{ message }`; invoice `total` is a decimal string.
+- Backend quirks: lists return `{ data, meta }` (`meta`: `total`, `page`, `pageSize`, `totalPages`, `hasPrev`, `hasNext`); "not found" comes back as 500; `401` uses `{ message }`; invoice `total` is a decimal string; `/invoice` ignores `startDate` (reported); `/auth/login` may return `sessionId` as a string or as `{ sessionId, userId, expiresAt }` and `auth.js` accepts both.
 
 ## Auth
 
@@ -62,7 +65,7 @@ next-auth v5 (`next-auth@beta`, Auth.js). Read its docs for v5 APIs, not v4.
 - Derive values during render instead of syncing state with effects. Do not add `useMemo`/`useCallback` without a measured need.
 - `async`/`await` only, no `.then` chains. Early returns over nested conditionals.
 - Modules holding secrets or calling private APIs start with `import 'server-only'`. Only `NEXT_PUBLIC_` env vars reach the client.
-- Money: never do arithmetic on floats. Work in integer cents and format with `Intl.NumberFormat`. Dates and numbers always go through helpers in `src/lib/format.js`.
+- Money: amounts arrive as decimal strings; format them directly with `formatMoney`. Never do float arithmetic; convert to integer cents if math is needed. Dates and numbers always go through helpers in `src/lib/format.js` (Mexico City time zone).
 
 ## Components
 
@@ -74,32 +77,29 @@ next-auth v5 (`next-auth@beta`, Auth.js). Read its docs for v5 APIs, not v4.
 - Styling is Tailwind utilities only. Design tokens live in `@theme` in `src/app/globals.css`; use token classes (`bg-background`, `text-foreground`) instead of raw hex values.
 - Accessible by default: semantic elements, labels for every input, visible focus states.
 
-Canonical primitive:
+See `src/components/ui/Button.js` for the canonical primitive (`buttonClass()` styles links as buttons).
 
-```js
-import { cn } from "@/lib/cn";
+## UI
 
-const variants = {
-  primary: "bg-foreground text-background hover:opacity-90",
-  ghost: "hover:bg-foreground/5",
-};
-
-export function Button({ variant = "primary", className, ...props }) {
-  return (
-    <button
-      className={cn("rounded-md px-4 py-2 text-sm font-medium transition disabled:opacity-50", variants[variant], className)}
-      {...props}
-    />
-  );
-}
-```
+- UI text is Spanish; code, identifiers and file names are English. Route folders are Spanish URLs (`clientes`, `facturas`, `descargas`, `usuarios`).
+- Dashboard pages live in `src/app/(dashboard)/`, which provides the sidebar shell and `error.js`. `proxy.js` sends anyone without a session to `/login`.
+- Theme: `next-themes` toggles the `dark` class. Colors are CSS variables in `:root` and `.dark` exposed as tokens (`bg-surface`, `text-muted`, `border-border`, `bg-primary`, `bg-sidebar`, `brand-*`). Never hardcode a color that has a token.
+- Every page is a synchronous component that renders its static header immediately and puts data inside `<Suspense fallback={<ContentSkeleton />}>` with an async child that receives the `params`/`searchParams` promises. Never `await` data at the top of a page: it blocks client navigation (Next dev reports "uncached data during prerendering or a navigation"). `loading.js` does not cover client navigation between sibling pages.
+- List content components: `await searchParams`, parse with `parseSearchParams(schema, params)`, call a service, render `FilterForm` (a GET form, no client JS), `Table` and `Pagination`. Filters and pages live in the URL.
+- Mutations are client components: `FormDialog` / `ConfirmButton` / `useSubmit`, call `api()` from `src/lib/api.js`, then `router.refresh()`. Show field errors from `fields`.
+- Enums and Spanish labels live in `src/lib/labels.js`. Client components never import `schemas.js` (keeps zod out of the browser bundle).
+- Pages with running SAT jobs use `AutoRefresh`.
+- Charts follow the dataviz skill: load it before writing chart code. Reuse `ColumnChart` and `StatTile`.
+- Logos: `public/images/logo.png` (light backgrounds) and `logo-white.png` (dark or brand backgrounds) via the `Logo` component.
 
 ## Structure
 
 ```
 src/
   app/                  routes only; route-specific pieces in colocated _components/
-  components/ui/        generic primitives (Button, Input, Card, Table, Modal)
+  components/ui/        generic primitives (Button, Input, Select, Field, Card, Badge, Table, Pagination, Modal, FormDialog, ConfirmButton, FilterForm, ColumnChart, StatTile, ...)
+  components/layout/    sidebar, top bar, navigation
+  components/common/    API-aware shared pieces (DeleteButton)
   components/<feature>/ domain components shared across routes
   lib/                  utilities, formatting, backend.js, route.js, schemas.js
   lib/services/         server-only backend functions per resource

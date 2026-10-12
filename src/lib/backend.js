@@ -11,23 +11,24 @@ export class ApiError extends Error {
 }
 
 async function currentSessionId() {
+  const requestHeaders = await headers();
   const token = await getToken({
-    req: { headers: await headers() },
+    req: { headers: requestHeaders },
     secret: process.env.AUTH_SECRET,
-    secureCookie: process.env.NODE_ENV === "production",
+    secureCookie: requestHeaders.get("x-forwarded-proto") === "https",
   });
-  if (!token?.sessionId || token.expiresAt < Date.now()) throw new ApiError(401, "Authentication required");
+  if (!token?.sessionId || token.expiresAt < Date.now()) throw new ApiError(401, "Sesión requerida");
   return token.sessionId;
 }
 
 function toError(status, data) {
-  if (!data) return new ApiError(502, "Backend unavailable");
+  if (!data) return new ApiError(502, "Servicio no disponible");
   if (status >= 500) {
     console.error("Backend error", status, data);
-    return new ApiError(500, "Internal server error");
+    return new ApiError(500, "Error interno del servidor");
   }
   const fields = data.errors && Object.fromEntries(data.errors.map(({ path, msg }) => [path, msg]));
-  return new ApiError(status, data.error ?? data.message ?? "Request failed", fields);
+  return new ApiError(status, data.error ?? data.message ?? "La solicitud falló", fields);
 }
 
 export async function backend(path, { method = "GET", query = {}, body, sessionId } = {}) {
