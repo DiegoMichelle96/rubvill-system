@@ -1,25 +1,64 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f7fb;
+  --surface: #ffffff;
+  --foreground: #1a1640;
+  --muted: #625e80;
+  --border: #e3e1ee;
+  --accent: #f0eff7;
+  --primary: #2e266d;
+  --primary-foreground: #ffffff;
+  --ring: #4e4690;
+  --sidebar: #2e266d;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #0f0d1f;
+  --surface: #17142e;
+  --foreground: #eceaf6;
+  --muted: #a19dbd;
+  --border: #2a2550;
+  --accent: #221e42;
+  --primary: #7d74d4;
+  --primary-foreground: #0f0d1f;
+  --ring: #9a92e6;
+  --sidebar: #17142e;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
   --font-sans: var(--font-geist-sans);
+}
+
+@theme {
+  --color-brand-50: #f4f3f9;
+  --color-brand-100: #e8e6f2;
+  --color-brand-200: #c8c8d8;
+  --color-brand-300: #9898b8;
+  --color-brand-500: #4e4690;
+  --color-brand-700: #2e266d;
+  --color-brand-900: #1a1640;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+}
+
+:where(button, a, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }

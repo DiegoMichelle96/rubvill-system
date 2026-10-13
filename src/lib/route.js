@@ -12,10 +12,10 @@ export function route(handler) {
       if (error instanceof ApiError) return Response.json({ error: error.message, fields: error.fields }, { status: error.status });
       if (error instanceof z.ZodError) {
         const fields = Object.fromEntries(error.issues.map(({ path, message }) => [path.join("."), message]));
-        return Response.json({ error: "Invalid input", fields }, { status: 400 });
+        return Response.json({ error: "Datos inválidos", fields }, { status: 400 });
       }
       console.error(error);
-      return Response.json({ error: "Internal server error" }, { status: 500 });
+      return Response.json({ error: "Error interno del servidor" }, { status: 500 });
     }
   };
 }

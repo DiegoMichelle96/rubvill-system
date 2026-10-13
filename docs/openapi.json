@@ -69,16 +69,60 @@
             "sessionCookie": []
           }
         ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number, starting at 1.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of clients per page (maximum 100).",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Case-insensitive partial match against client name or RFC.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Case-insensitive partial match against client name.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "rfc",
+            "in": "query",
+            "description": "Case-insensitive partial match against client RFC.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Client list.",
+            "description": "Paginated client list.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Client"
-                  }
+                  "$ref": "#/components/schemas/ClientListResponse"
                 }
               }
             }
@@ -360,16 +404,60 @@
             "sessionCookie": []
           }
         ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "description": "Page number, starting at 1.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "description": "Number of users per page (maximum 100).",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "description": "Case-insensitive partial match against user name or email.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "name",
+            "description": "Case-insensitive partial match against user name.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "email",
+            "description": "Case-insensitive partial match against user email.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "User list.",
+            "description": "Paginated user list.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/User"
-                  }
+                  "$ref": "#/components/schemas/UserListResponse"
                 }
               }
             }
@@ -517,9 +605,11 @@
           {
             "in": "query",
             "name": "limit",
+            "description": "Number of invoices per page (maximum 100).",
             "schema": {
               "type": "integer",
               "minimum": 1,
+              "maximum": 100,
               "default": 10
             }
           },
@@ -559,14 +649,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Invoice list.",
+            "description": "Paginated invoice list.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Invoice"
-                  }
+                  "$ref": "#/components/schemas/InvoiceListResponse"
                 }
               }
             }
@@ -686,6 +773,7 @@
           {
             "in": "query",
             "name": "page",
+            "description": "Page number, starting at 1.",
             "schema": {
               "type": "integer",
               "minimum": 1,
@@ -695,9 +783,11 @@
           {
             "in": "query",
             "name": "limit",
+            "description": "Number of jobs per page (maximum 100).",
             "schema": {
               "type": "integer",
               "minimum": 1,
+              "maximum": 100,
               "default": 10
             }
           },
@@ -758,14 +848,11 @@
         ],
         "responses": {
           "200": {
-            "description": "CFDI processing job list.",
+            "description": "Paginated CFDI processing job list.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/CfdiProcessingJob"
-                  }
+                  "$ref": "#/components/schemas/CfdiProcessingJobListResponse"
                 }
               }
             }
@@ -1025,6 +1112,79 @@
           }
         ]
       },
+      "ClientListResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Client"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ClientListMeta"
+          }
+        }
+      },
+      "ClientListMeta": {
+        "type": "object",
+        "required": [
+          "total",
+          "page",
+          "pageSize",
+          "totalPages",
+          "hasPrev",
+          "hasNext",
+          "prevPage",
+          "nextPage",
+          "search"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "example": 42
+          },
+          "page": {
+            "type": "integer",
+            "example": 2
+          },
+          "pageSize": {
+            "type": "integer",
+            "example": 10
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 5
+          },
+          "hasPrev": {
+            "type": "boolean",
+            "example": true
+          },
+          "hasNext": {
+            "type": "boolean",
+            "example": true
+          },
+          "prevPage": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "nextPage": {
+            "type": "integer",
+            "nullable": true,
+            "example": 3
+          },
+          "search": {
+            "type": "string",
+            "nullable": true,
+            "example": "acme"
+          }
+        }
+      },
       "ClientUpdate": {
         "type": "object",
         "properties": {
@@ -1105,6 +1265,73 @@
           }
         }
       },
+      "InvoiceListResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Invoice"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/InvoiceListMeta"
+          }
+        }
+      },
+      "InvoiceListMeta": {
+        "type": "object",
+        "required": [
+          "total",
+          "page",
+          "pageSize",
+          "totalPages",
+          "hasPrev",
+          "hasNext",
+          "prevPage",
+          "nextPage"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "example": 42
+          },
+          "page": {
+            "type": "integer",
+            "example": 2
+          },
+          "pageSize": {
+            "type": "integer",
+            "example": 10
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 5
+          },
+          "hasPrev": {
+            "type": "boolean",
+            "example": true
+          },
+          "hasNext": {
+            "type": "boolean",
+            "example": true
+          },
+          "prevPage": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "nextPage": {
+            "type": "integer",
+            "nullable": true,
+            "example": 3
+          }
+        }
+      },
       "UpdateInvoiceRequest": {
         "type": "object",
         "required": [
@@ -1178,6 +1405,73 @@
           "error": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "CfdiProcessingJobListResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CfdiProcessingJob"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        }
+      },
+      "PaginationMeta": {
+        "type": "object",
+        "required": [
+          "total",
+          "page",
+          "pageSize",
+          "totalPages",
+          "hasPrev",
+          "hasNext",
+          "prevPage",
+          "nextPage"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "example": 42
+          },
+          "page": {
+            "type": "integer",
+            "example": 2
+          },
+          "pageSize": {
+            "type": "integer",
+            "example": 10
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 5
+          },
+          "hasPrev": {
+            "type": "boolean",
+            "example": true
+          },
+          "hasNext": {
+            "type": "boolean",
+            "example": true
+          },
+          "prevPage": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "nextPage": {
+            "type": "integer",
+            "nullable": true,
+            "example": 3
           }
         }
       },
@@ -1372,6 +1666,79 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          }
+        }
+      },
+      "UserListResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/UserListMeta"
+          }
+        }
+      },
+      "UserListMeta": {
+        "type": "object",
+        "required": [
+          "total",
+          "page",
+          "pageSize",
+          "totalPages",
+          "hasPrev",
+          "hasNext",
+          "prevPage",
+          "nextPage",
+          "search"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "example": 42
+          },
+          "page": {
+            "type": "integer",
+            "example": 2
+          },
+          "pageSize": {
+            "type": "integer",
+            "example": 10
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 5
+          },
+          "hasPrev": {
+            "type": "boolean",
+            "example": true
+          },
+          "hasNext": {
+            "type": "boolean",
+            "example": true
+          },
+          "prevPage": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "nextPage": {
+            "type": "integer",
+            "nullable": true,
+            "example": 3
+          },
+          "search": {
+            "type": "string",
+            "nullable": true,
+            "example": "ada"
           }
         }
       },
